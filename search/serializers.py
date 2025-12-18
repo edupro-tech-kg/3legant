@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from apps.products.models import Product
+from products.models import Product
 
 
 class SearchProductSerializer(serializers.ModelSerializer):
