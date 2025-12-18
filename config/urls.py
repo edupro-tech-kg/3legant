@@ -29,7 +29,7 @@ urlpatterns = [
     path('api/auth/token/refresh/', TokenRefreshView.as_view()),
     path('api/auth/', include('accounts.urls')),
 
-    path('api/', include('product.urls')),
+    path('api/', include('products.urls')),
     path('api/', include('search.urls')),
     path('api/newsletter/', include('newsletter.urls')),
     path('api/cart', include('cart.urls')),
