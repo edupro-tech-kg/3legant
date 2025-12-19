@@ -1,54 +1,50 @@
 from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework import status
 from .models import Cart, CartItem, Product
+from .serializers import CartItemSerializer
 
 class CartView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
         cart, _ = Cart.objects.get_or_create(user=request.user)
-        items = []
-        total = 0
-        for item in cart.items.all():
-            items.append({
-                "product": item.product.name,
-                "price": item.product.price,
-                "quantity": item.quantity,
-                "sum": item.product.price * item.quantity
-            })
-            total += item.product.price * item.quantity
-        return Response({"items": items, "total": total})
+        items = cart.items.all()
+        serializer = CartItemSerializer(items, many=True)
+        total = sum(item.product.price * item.quantity for item in items)
+        return Response({"items": serializer.data, "total": total})
 
-class AddToCart(APIView):
+class AddToCartAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def post(self, request):
-        product_id = request.data['product_id']
-        qty = request.data.get('quantity', 1)
+        product_id = request.data.get('product_id')
+        quantity = int(request.data.get('quantity', 1))
+
+        try:
+            product = Product.objects.get(id=product_id)
+        except Product.DoesNotExist:
+            return Response({"error": "Product not found"}, status=status.HTTP_404_NOT_FOUND)
 
         cart, _ = Cart.objects.get_or_create(user=request.user)
-        product = Product.objects.get(id=product_id)
-
         item, created = CartItem.objects.get_or_create(cart=cart, product=product)
+
         if not created:
-            item.quantity += qty
+            item.quantity += quantity
+        else:
+            item.quantity = quantity
         item.save()
 
-        return Response({"ok": True})
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from .models import Cart, CartItem
+        return Response({"message": "Added to cart"})
 
-class CartView(APIView):
-    permission_classes = [IsAuthenticated]  # 🔹 защита от AnonymousUser
+class RemoveFromCartAPIView(APIView):
+    permission_classes = [IsAuthenticated]
 
-    def get(self, request):
-        cart, _ = Cart.objects.get_or_create(user=request.user)
-        items = []
-        total = 0
-        for item in cart.items.all():
-            items.append({
-                "product": item.product.name,
-                "price": item.product.price,
-                "quantity": item.quantity,
-                "sum": item.product.price * item.quantity
-            })
-            total += item.product.price * item.quantity
-        return Response({"items": items, "total": total})
+    def post(self, request):
+        item_id = request.data.get("item_id")
+        item = CartItem.objects.filter(id=item_id, cart__user=request.user).first()
+        if item:
+            item.delete()
+            return Response({"message": "Removed"})
+        return Response({"error": "Item not found"}, status=status.HTTP_404_NOT_FOUND)
