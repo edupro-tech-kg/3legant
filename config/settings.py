@@ -41,12 +41,12 @@ INSTALLED_APPS = [
     'rest_framework',
     'django_filters',
 
-    'products',
-    'search'
-
     'accounts',
     'newsletter',
     'cart',
+    'products',
+    'search',
+    'favourites',
 
 ]
 

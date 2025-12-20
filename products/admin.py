@@ -4,12 +4,12 @@ from .models import Product, Category, Brand
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    pass
+    search_fields = ('title',)
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
-    pass
+    search_fields = ('title',)
 
 @admin.register(Brand)
 class BrandAdmin(admin.ModelAdmin):
-    pass
+    search_fields = ('title',)
