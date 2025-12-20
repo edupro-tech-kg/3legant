@@ -40,7 +40,12 @@ INSTALLED_APPS = [
     #project apps
     'rest_framework',
     'django_filters',
-    'accounts',
+
+
+
+    'products',
+
+
 
 ]
 
@@ -134,3 +139,7 @@ REST_FRAMEWORK = {
             'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
 }
+
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+DEFAULT_FROM_EMAIL = 'newsletter@example.com'

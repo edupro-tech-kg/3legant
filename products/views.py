@@ -4,7 +4,8 @@ from rest_framework import status
 
 from .models import Product, Category, Brand
 from .serializers import ProductSerializer, CategorySerializer, BrandSerializer
-from .selectors import get_active_products, get_product_by_id, get_products_by_category
+from .selectors import get_active_products, get_product_by_id, get_products_by_category, get_new_products, get_popular_products
+
 
 class ProductListView(APIView):
     def get(self, request):
@@ -65,5 +66,17 @@ class ProductByCategoryView(APIView):
 class ProductByBrandView(APIView):
     def get(self, request, brand_id):
         products = get_products_by_category(brand_id)
+        serializer = ProductSerializer(products, many=True)
+        return Response(serializer.data)
+
+class NewProductView(APIView):
+    def get(self, request):
+        products = get_new_products()
+        serializer = ProductSerializer(products, many=True)
+        return Response(serializer.data)
+
+class PopularProductView(APIView):
+    def get(self, request):
+        products = get_popular_products()
         serializer = ProductSerializer(products, many=True)
         return Response(serializer.data)

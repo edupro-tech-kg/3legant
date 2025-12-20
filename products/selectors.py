@@ -21,3 +21,16 @@ def get_products_by_brand(brand_id):
         is_active=True,
         brand_id=brand_id
     )
+
+def get_new_products(limit=25):
+    return (
+        Product.objects
+        .filter(in_stock=True)
+        .order_by("-created_at")[:limit]
+    )
+
+def get_popular_products(limit=25):
+    return (
+        Product.objects
+        .filter(in_stock=True, is_popular=True)[:limit]
+    )
