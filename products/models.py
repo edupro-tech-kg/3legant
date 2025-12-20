@@ -13,6 +13,7 @@ class Product(models.Model):
                                  null=True, related_name='products', verbose_name='Бренд')
     is_popular = models.BooleanField(default=False)
 
+
     class Meta:
         verbose_name = 'Товар'
         verbose_name_plural = 'Товары'
