@@ -34,5 +34,14 @@ urlpatterns = [
     path('api/newsletter/', include('newsletter.urls')),
     path('api/cart', include('cart.urls')),
     path('api/favorites/', include('favourites.urls')),
+    path('api/reviews/', include('reviews.urls')),
 
 ]
+
+from django.conf import settings
+from django.conf.urls.static import static
+
+urlpatterns += static(
+    settings.MEDIA_URL,
+    document_root=settings.MEDIA_ROOT
+)
