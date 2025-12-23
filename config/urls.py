@@ -28,12 +28,17 @@ urlpatterns = [
     path('api/auth/login/', TokenObtainPairView.as_view()),
     path('api/auth/token/refresh/', TokenRefreshView.as_view()),
     path('api/auth/', include('accounts.urls')),
+<<<<<<< HEAD
+=======
+    path('api/articles/', include('articles.urls')),
+>>>>>>> 4a2bb151085fce5155fb86a7efe70f217c4879b0
 
     path('api/', include('products.urls')),
     path('api/', include('search.urls')),
     path('api/newsletter/', include('newsletter.urls')),
     path('api/cart', include('cart.urls')),
     path('api/favorites/', include('favourites.urls')),
+    path('', include('user_profile.urls')),
     path('api/reviews/', include('reviews.urls')),
 
 ]

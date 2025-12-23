@@ -41,6 +41,10 @@ INSTALLED_APPS = [
     'rest_framework',
     'django_filters',
     'accounts',
+<<<<<<< HEAD
+=======
+    'articles',
+>>>>>>> 4a2bb151085fce5155fb86a7efe70f217c4879b0
     'newsletter',
     'cart',
     'products',
