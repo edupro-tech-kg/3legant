@@ -1,6 +1,6 @@
 from django.db.models import F
 from django.contrib.postgres.search import (SearchVector, SearchQuery, SearchRank,)
-from apps.products.models import Product
+from products.models import Product
 
 def search_products(
     *,
