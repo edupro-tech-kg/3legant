@@ -1,8 +1,7 @@
+from config.urls import path
 from .views import *
-from rest_framework import routers
-from django.urls import path, include
-
-router = routers.SimpleRouter()
-router.register(r'article', ArticleListAPIView, basename='article')
 
 
+urlpatterns = [
+    path('', ArticleListAPIView.as_view())
+]
