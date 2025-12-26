@@ -1,10 +1,15 @@
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
 from rest_framework import status
 
-from .models import Cart, CartItem, Product
+from .models import  Product
 from .serializers import CartItemSerializer
+from rest_framework import viewsets, permissions
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from .models import Cart, CartItem, Order, OrderItem
+from .serializers import OrderSerializer
+
 
 
 
@@ -86,3 +91,30 @@ class RemoveFromCartAPIView(APIView):
             {"message": "Removed"},
             status=status.HTTP_204_NO_CONTENT
         )
+class OrderViewSet(viewsets.ModelViewSet):
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    @action(detail=False, methods=['post'])
+    def create_order(self, request):
+        user = request.user
+        try:
+            cart = Cart.objects.get(user=user)
+        except Cart.DoesNotExist:
+            return Response({'error': 'Cart is empty'}, status=400)
+
+        order = Order.objects.create(user=user, total_price=0)
+        total = 0
+        for item in cart.items.all():
+            OrderItem.objects.create(
+                order=order,
+                product=item.product,
+                quantity=item.quantity,
+                price=item.product.price
+            )
+            total += item.product.price * item.quantity
+        order.total_price = total
+        order.save()
+        cart.items.all().delete()  # очищаем корзину
+        return Response({'status': 'order_created', 'order_id': order.id})
