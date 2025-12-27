@@ -17,6 +17,9 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
+
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -25,31 +28,28 @@ from rest_framework_simplejwt.views import (
 urlpatterns = [
     path('admin/', admin.site.urls),
 
+
     path('api/auth/login/', TokenObtainPairView.as_view()),
     path('api/auth/token/refresh/', TokenRefreshView.as_view()),
     path('api/auth/', include('accounts.urls')),
     path('api/articles/', include('articles.urls')),
 
-    path('api/', include('products.urls')),
-    path('api/', include('search.urls')),
+
+    path('api/products/', include('products.urls')),
+    path('api/search/', include('search.urls')),
     path('api/newsletter/', include('newsletter.urls')),
     path('api/cart/', include('cart.urls')),
     path('api/favorites/', include('favourites.urls')),
-    path('', include('user_profile.urls')),
     path('api/reviews/', include('reviews.urls')),
 
+
+    path('', include('user_profile.urls')),
 ]
 
-from django.conf import settings
-from django.conf.urls.static import static
-from django.urls import path, include
-
-urlpatterns = [
-    path('api/', include('cart.urls')),
-]
 
 urlpatterns += static(
     settings.MEDIA_URL,
     document_root=settings.MEDIA_ROOT
 )
+
 
