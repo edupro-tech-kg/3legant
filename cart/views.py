@@ -1,54 +1,120 @@
 from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
+from rest_framework import status
+
+from .models import  Product
+from .serializers import CartItemSerializer
+from rest_framework import viewsets, permissions
+from rest_framework.decorators import action
 from rest_framework.response import Response
-from .models import Cart, CartItem, Product
+from .models import Cart, CartItem, Order, OrderItem
+from .serializers import OrderSerializer
+
+
+
 
 class CartView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
         cart, _ = Cart.objects.get_or_create(user=request.user)
-        items = []
-        total = 0
-        for item in cart.items.all():
-            items.append({
-                "product": item.product.name,
-                "price": item.product.price,
-                "quantity": item.quantity,
-                "sum": item.product.price * item.quantity
-            })
-            total += item.product.price * item.quantity
-        return Response({"items": items, "total": total})
+        items = cart.items.all()
 
-class AddToCart(APIView):
+        serializer = CartItemSerializer(items, many=True)
+        total = sum(
+            item.product.price * item.quantity
+            for item in items
+        )
+
+        return Response({
+            "items": serializer.data,
+            "total": total
+        })
+
+
+
+class AddToCartAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def post(self, request):
-        product_id = request.data['product_id']
-        qty = request.data.get('quantity', 1)
+        product_id = request.data.get("product_id")
+        quantity = int(request.data.get("quantity", 1))
+
+        if quantity < 1:
+            return Response(
+                {"error": "Quantity must be >= 1"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            product = Product.objects.get(id=product_id)
+        except Product.DoesNotExist:
+            return Response(
+                {"error": "Product not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
         cart, _ = Cart.objects.get_or_create(user=request.user)
-        product = Product.objects.get(id=product_id)
 
-        item, created = CartItem.objects.get_or_create(cart=cart, product=product)
-        if not created:
-            item.quantity += qty
+        item, created = CartItem.objects.get_or_create(
+            cart=cart,
+            product=product
+        )
+
+        if created:
+            item.quantity = quantity
+        else:
+            item.quantity += quantity
+
         item.save()
 
-        return Response({"ok": True})
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from .models import Cart, CartItem
+        return Response({"message": "Added to cart"})
 
-class CartView(APIView):
-    permission_classes = [IsAuthenticated]  # 🔹 защита от AnonymousUser
 
-    def get(self, request):
-        cart, _ = Cart.objects.get_or_create(user=request.user)
-        items = []
+class RemoveFromCartAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, item_id):
+        item = CartItem.objects.filter(
+            id=item_id,
+            cart__user=request.user
+        ).first()
+
+        if not item:
+            return Response(
+                {"error": "Item not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        item.delete()
+        return Response(
+            {"message": "Removed"},
+            status=status.HTTP_204_NO_CONTENT
+        )
+class OrderViewSet(viewsets.ModelViewSet):
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    @action(detail=False, methods=['post'])
+    def create_order(self, request):
+        user = request.user
+        try:
+            cart = Cart.objects.get(user=user)
+        except Cart.DoesNotExist:
+            return Response({'error': 'Cart is empty'}, status=400)
+
+        order = Order.objects.create(user=user, total_price=0)
         total = 0
         for item in cart.items.all():
-            items.append({
-                "product": item.product.name,
-                "price": item.product.price,
-                "quantity": item.quantity,
-                "sum": item.product.price * item.quantity
-            })
+            OrderItem.objects.create(
+                order=order,
+                product=item.product,
+                quantity=item.quantity,
+                price=item.product.price
+            )
             total += item.product.price * item.quantity
-        return Response({"items": items, "total": total})
+        order.total_price = total
+        order.save()
+        cart.items.all().delete()  # очищаем корзину
+        return Response({'status': 'order_created', 'order_id': order.id})

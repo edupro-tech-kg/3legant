@@ -40,13 +40,13 @@ INSTALLED_APPS = [
     #project apps
     'rest_framework',
     'django_filters',
-
     'accounts',
     'newsletter',
     'cart',
     'products',
     'search',
     'favourites',
+
 
 ]
 
