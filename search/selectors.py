@@ -1,6 +1,6 @@
-from django.db.models import F
-from django.contrib.postgres.search import (SearchVector, SearchQuery, SearchRank,)
+from django.db.models import Q
 from products.models import Product
+
 
 def search_products(
     *,
@@ -8,24 +8,28 @@ def search_products(
     limit: int = 20,
     offset: int = 0,
 ):
-    search_query = SearchQuery(
-        query,
-        config="russian"
-    )
-
-    search_vector = (
-        SearchVector("name", weight="A", config="russian") +
-        SearchVector("brand", weight="B", config="russian") +
-        SearchVector("category", weight="C", config="russian")
-    )
+    """
+    Search products by title, brand, and category.
+    Works with SQLite using Django ORM.
+    """
+    search_terms = query.split()
+    
+    # Build Q objects for searching
+    q_objects = Q()
+    for term in search_terms:
+        q_objects |= (
+            Q(title__icontains=term) |
+            Q(brand__title__icontains=term) |
+            Q(category__title__icontains=term) |
+            Q(description__icontains=term)
+        )
 
     qs = (
         Product.objects
-        .annotate(
-            rank=SearchRank(search_vector, search_query)
-        )
-        .filter(rank__gt=0)
-        .order_by("-rank")
+        .filter(q_objects)
+        .select_related('brand', 'category')
+        .distinct()
+        .order_by("-created_at")
     )
 
     total = qs.count()
@@ -33,21 +37,24 @@ def search_products(
 
     return results, total
 
+
 def suggest_products(
     *,
     query: str,
     limit: int = 10,
 ):
-
-    if len(query) < 3:
+    """
+    Suggest product names based on query.
+    """
+    if len(query) < 2:
         return []
 
     qs = (
         Product.objects
         .filter(
-            name__istartswith=query
+            title__istartswith=query
         )
-        .values_list("name", flat=True)
+        .values_list("title", flat=True)
         .distinct()[:limit]
     )
 

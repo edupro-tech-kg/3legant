@@ -16,7 +16,7 @@ class FavoriteAdmin(admin.ModelAdmin):
     search_fields = (
         'user__username',
         'user__email',
-        'product__name',
+        'product__title',
     )
     autocomplete_fields = (
         'user',
