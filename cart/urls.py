@@ -3,12 +3,11 @@ from .views import (
     CartView,
     AddToCartAPIView,
     RemoveFromCartAPIView,
-    OrderViewSet
 )
 from rest_framework import routers
 
 router = routers.DefaultRouter()
-router.register(r'orders', OrderViewSet, basename='orders')
+
 
 urlpatterns = [
     path("", CartView.as_view(), name="cart"),
