@@ -11,6 +11,7 @@ class Product(models.Model):
                                  null=True, related_name= 'products', verbose_name = 'Категория')
     brand = models.ForeignKey('Brand', on_delete=models.SET_NULL,
                                  null=True, related_name='products', verbose_name='Бренд')
+    is_popular = models.BooleanField(default=False)
 
 
     class Meta:
