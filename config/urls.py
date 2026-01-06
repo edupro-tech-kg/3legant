@@ -34,5 +34,8 @@ urlpatterns = [
     path('api/newsletter/', include('newsletter.urls')),
     path('api/cart', include('cart.urls')),
     path('api/favorites/', include('favourites.urls')),
+    path('api/reviews/', include('reviews.urls')),
+    path('api/', include('orders.urls')),
+
 
 ]
